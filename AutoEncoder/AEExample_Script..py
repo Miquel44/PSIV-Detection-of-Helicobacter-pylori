@@ -108,7 +108,7 @@ inputmodule_paramsEnc['num_input_channels']=3
 # 2.0 Annotated set for FRed optimal threshold
 annotated_dataset = ImageDataset('ruta/al/csv_annotated.csv')
 # 2.1 AE trainnig set
-ae_dataset = ImageDataset('')
+ae_dataset = ImageDataset('ruta/al/csv_patches.csv')
 train_size = int(0.8 * len(ae_dataset))
 val_size = len(ae_dataset) - train_size
 
