@@ -7,7 +7,9 @@ import torch.utils.data as data
 import numpy as np
 from random import shuffle
 import random
-
+import pandas as pd
+from PIL import Image
+import torchvision.transforms as transforms
 
     
 # =============================================================================
@@ -33,9 +35,35 @@ class Standard_Dataset(data.Dataset):
             return torch.from_numpy(self.X[idx])
 
              
-       
-        
-        
+
+class ImageDataset(data.Dataset):
+    def __init__(self, csv_file, transform=None):
+        """
+        Args:
+            csv_file (str): Ruta al archivo CSV con columnas 'codi' y 'path'
+            transform (callable, optional): Transformaciones a aplicar a las imágenes
+        """
+        self.data = pd.read_csv(csv_file)
+        self.transform = transform
+
+        if self.transform is None:
+            self.transform = transforms.Compose([
+                transforms.ToTensor(),
+            ])
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        img_path = self.data.iloc[idx]['PATH']
+        codi = self.data.iloc[idx]['CODI']
+
+        image = Image.open(img_path).convert('RGB')
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, codi
 
 
 
