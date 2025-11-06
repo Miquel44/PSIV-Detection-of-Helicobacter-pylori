@@ -40,16 +40,19 @@ import pandas as pd
 import glob
 
 # Torch Libraries
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 import gc
 import torch
-from torch.utils.data import random_split
 import torch.optim as optim
 import torch.nn as nn
 
 ## Own Functions
 from Models.AEmodels import AutoEncoderCNN
 from Models.datasets import ImageDataset
+
+# WandB
+import wandb
+
 
 def AEConfigs(Config):
     net_paramsEnc={}
@@ -62,8 +65,6 @@ def AEConfigs(Config):
         net_paramsDec['block_configs']=[[64,32],[32,inputmodule_paramsEnc['num_input_channels']]]
         net_paramsDec['stride']=net_paramsEnc['stride']
         inputmodule_paramsDec['num_input_channels']=net_paramsEnc['block_configs'][-1][-1]
-     
-
         
     elif Config=='2':
         # CONFIG 2
@@ -72,7 +73,6 @@ def AEConfigs(Config):
         net_paramsDec['block_configs']=[[128],[64],[32],[inputmodule_paramsEnc['num_input_channels']]]
         net_paramsDec['stride']=net_paramsEnc['stride']
         inputmodule_paramsDec['num_input_channels']=net_paramsEnc['block_configs'][-1][-1]
-   
         
     elif Config=='3':  
         # CONFIG3
@@ -91,6 +91,19 @@ inputmodule_paramsEnc={}
 inputmodule_paramsEnc['num_input_channels']=3
 
 # 0.1 NETWORK TRAINING PARAMS
+# WandB Initialization
+run = wandb.init(
+    entity="Grup02DeepProject",  # Cambia esto por tu nombre o equipo en WandB
+    project="HPilory-Autoencoder",  # Cambia el nombre del proyecto
+    config={
+        "learning_rate": 0.001,
+        "architecture": "AutoEncoderCNN",
+        "batch_size": 32,
+        "epochs": 50,
+        "Config": "1"
+    },
+)
+config = wandb.config
 
 # 0.2 FOLDERS
 
@@ -106,9 +119,9 @@ inputmodule_paramsEnc['num_input_channels']=3
 #### 2. DATA SPLITING INTO INDEPENDENT SETS
 
 # 2.0 Annotated set for FRed optimal threshold
-annotated_dataset = ImageDataset('ruta/al/csv_annotated.csv')
+annotated_dataset = ImageDataset('HP_WSI-CoordAllAnnotatedPatches_AE.csv')
 # 2.1 AE trainnig set
-ae_dataset = ImageDataset('ruta/al/csv_patches.csv')
+ae_dataset = ImageDataset('PatientDiagnosis_AE.csv')
 train_size = int(0.8 * len(ae_dataset))
 val_size = len(ae_dataset) - train_size
 
@@ -121,7 +134,7 @@ train_dataset, val_dataset = random_split(
 # 2.1 Diagosis crossvalidation set
 
 #### 3. lOAD PATCHES
-batch_size = 32
+batch_size = config.batch_size
 
 train_loader = DataLoader(
     train_dataset,
@@ -156,7 +169,7 @@ annotated_loader = DataLoader(
 
 
 ###### CONFIG1
-Config='1'
+Config=config.Config
 net_paramsEnc,net_paramsDec,inputmodule_paramsDec=AEConfigs(Config)
 model=AutoEncoderCNN(inputmodule_paramsEnc, net_paramsEnc,
                      inputmodule_paramsDec, net_paramsDec)
@@ -166,10 +179,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
 
 num_epochs = 50
 best_val_loss = float('inf')
+save_path = f'Models/AE_Config{Config}_best.pth'
 
 for epoch in range(num_epochs):
     # Training
@@ -201,13 +215,22 @@ for epoch in range(num_epochs):
 
     print(f'Epoch {epoch + 1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
 
+    # Log losses to wandb
+    wandb.log({
+        "epoch": epoch + 1,
+        "train_loss": train_loss,
+        "val_loss": val_loss
+    })
+
     # Guardar mejor modelo
     if val_loss < best_val_loss:
         best_val_loss = val_loss
-        torch.save(model.state_dict(), f'Models/AE_Config{Config}_best.pth')
+        torch.save(model.state_dict(), save_path)
+        wandb.run.summary["best_val_loss"] = best_val_loss
+        wandb.save(save_path)
 
 # Cargar mejor modelo
-model.load_state_dict(torch.load(f'Models/AE_Config{Config}_best.pth'))
+model.load_state_dict(torch.load(save_path))
 
 # Free GPU Memory After Training
 gc.collect()
@@ -230,15 +253,28 @@ with torch.no_grad():
         codis.extend(codi)
 
 # Guardar resultados
+os.makedirs("Results", exist_ok=True)
 results_df = pd.DataFrame({
     'CODI': codis,
     'reconstruction_error': reconstruction_errors
 })
-results_df.to_csv(f'Results/AE_Config{Config}_errors.csv', index=False)
+results_path = f'Results/AE_Config{Config}_errors.csv'
+results_df.to_csv(results_path, index=False)
+
+# Log reconstruction errors summary to wandb
+wandb.log({
+    "mean_reconstruction_error": np.mean(reconstruction_errors),
+    "std_reconstruction_error": np.std(reconstruction_errors)
+})
+
+wandb.save(results_path)
 
 # Free GPU Memory After Evaluation
 gc.collect()
 torch.cuda.empty_cache()
+
+# Finish wandb run
+wandb.finish()
 
 ## 5.2 RedMetrics Threshold 
 
