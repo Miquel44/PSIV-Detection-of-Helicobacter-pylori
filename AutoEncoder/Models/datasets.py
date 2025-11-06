@@ -56,6 +56,7 @@ class ImageDataset(data.Dataset):
 
     def __getitem__(self, idx):
         img_path = self.data.iloc[idx]['PATH']
+        img_path = img_path.replace("Data\\Cropped", "/export/fhome/maed/HelicoDataSet/CrossValidation/Cropped")
         img_path = img_path.replace("\\", "/")
         codi = self.data.iloc[idx]['CODI']
 
