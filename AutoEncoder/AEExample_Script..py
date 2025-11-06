@@ -28,6 +28,7 @@ email: debora@cvc.uab.es, pcano@cvc.uab.es
 Reference: https://arxiv.org/abs/2309.16053 
 
 """
+
 # IO Libraries
 import sys
 import os
@@ -42,11 +43,13 @@ import glob
 from torch.utils.data import DataLoader
 import gc
 import torch
-
+from torch.utils.data import random_split
+import torch.optim as optim
+import torch.nn as nn
 
 ## Own Functions
 from Models.AEmodels import AutoEncoderCNN
-
+from Models.datasets import ImageDataset
 
 def AEConfigs(Config):
     net_paramsEnc={}
@@ -103,13 +106,45 @@ inputmodule_paramsEnc['num_input_channels']=3
 #### 2. DATA SPLITING INTO INDEPENDENT SETS
 
 # 2.0 Annotated set for FRed optimal threshold
-
+annotated_dataset = ImageDataset('ruta/al/csv_annotated.csv')
 # 2.1 AE trainnig set
+ae_dataset = ImageDataset('')
+train_size = int(0.8 * len(ae_dataset))
+val_size = len(ae_dataset) - train_size
+
+train_dataset, val_dataset = random_split(
+    ae_dataset,
+    [train_size, val_size],
+    generator=torch.Generator().manual_seed(42)
+)
 
 # 2.1 Diagosis crossvalidation set
 
 #### 3. lOAD PATCHES
+batch_size = 32
 
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=batch_size,
+    shuffle=True,
+    num_workers=4,
+    pin_memory=True
+)
+
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=batch_size,
+    shuffle=False,
+    num_workers=4,
+    pin_memory=True
+)
+
+annotated_loader = DataLoader(
+    annotated_dataset,
+    batch_size=batch_size,
+    shuffle=False,
+    num_workers=4
+)
 ### 4. AE TRAINING
 
 # EXPERIMENTAL DESIGN:
@@ -127,12 +162,79 @@ model=AutoEncoderCNN(inputmodule_paramsEnc, net_paramsEnc,
                      inputmodule_paramsDec, net_paramsDec)
 # 4.2 Model Training
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = model.to(device)
+
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+num_epochs = 50
+best_val_loss = float('inf')
+
+for epoch in range(num_epochs):
+    # Training
+    model.train()
+    train_loss = 0.0
+    for images, _ in train_loader:
+        images = images.to(device)
+
+        optimizer.zero_grad()
+        outputs = model(images)
+        loss = criterion(outputs, images)
+        loss.backward()
+        optimizer.step()
+
+        train_loss += loss.item()
+
+    # Validation
+    model.eval()
+    val_loss = 0.0
+    with torch.no_grad():
+        for images, _ in val_loader:
+            images = images.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, images)
+            val_loss += loss.item()
+
+    train_loss /= len(train_loader)
+    val_loss /= len(val_loader)
+
+    print(f'Epoch {epoch + 1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
+
+    # Guardar mejor modelo
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        torch.save(model.state_dict(), f'Models/AE_Config{Config}_best.pth')
+
+# Cargar mejor modelo
+model.load_state_dict(torch.load(f'Models/AE_Config{Config}_best.pth'))
+
 # Free GPU Memory After Training
 gc.collect()
 torch.cuda.empty_cache()
 #### 5. AE RED METRICS THRESHOLD LEARNING
 
 ## 5.1 AE Model Evaluation
+model.eval()
+reconstruction_errors = []
+codis = []
+
+with torch.no_grad():
+    for images, codi in annotated_loader:
+        images = images.to(device)
+        outputs = model(images)
+
+        # Error por imagen (MSE por píxel)
+        errors = torch.mean((images - outputs) ** 2, dim=[1, 2, 3])
+        reconstruction_errors.extend(errors.cpu().numpy())
+        codis.extend(codi)
+
+# Guardar resultados
+results_df = pd.DataFrame({
+    'CODI': codis,
+    'reconstruction_error': reconstruction_errors
+})
+results_df.to_csv(f'Results/AE_Config{Config}_errors.csv', index=False)
 
 # Free GPU Memory After Evaluation
 gc.collect()
