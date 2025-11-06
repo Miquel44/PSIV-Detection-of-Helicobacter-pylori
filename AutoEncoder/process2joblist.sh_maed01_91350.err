@@ -1,0 +1,129 @@
+/var/spool/slurmd/job91350/slurm_script: línea 13: /export/fhome/maed01/MyVirtualEnv/bin/activate: No existe el archivo o el directorio
+/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/AEExample_Script.py", line 195, in <module>
+    for images, _ in train_loader:
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 628, in __next__
+    data = self._next_data()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1333, in _next_data
+    return self._process_data(data)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1359, in _process_data
+    data.reraise()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/_utils.py", line 543, in reraise
+    raise exception
+RuntimeError: Caught RuntimeError in DataLoader worker process 2.
+Original Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/worker.py", line 302, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 61, in fetch
+    return self.collate_fn(data)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 265, in default_collate
+    return collate(batch, collate_fn_map=default_collate_fn_map)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 143, in collate
+    return [collate(samples, collate_fn_map=collate_fn_map) for samples in transposed]  # Backwards compatibility.
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 143, in <listcomp>
+    return [collate(samples, collate_fn_map=collate_fn_map) for samples in transposed]  # Backwards compatibility.
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 120, in collate
+    return collate_fn_map[elem_type](batch, collate_fn_map=collate_fn_map)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 162, in collate_tensor_fn
+    out = elem.new(storage).resize_(len(batch), *list(elem.size()))
+RuntimeError: Trying to resize storage that is not resizable
+
+srun: error: etse-75-51: task 0: Exited with exit code 1
+Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/AEExample_Script.py", line 195, in <module>
+    for images, _ in train_loader:
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 628, in __next__
+    data = self._next_data()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1333, in _next_data
+    return self._process_data(data)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1359, in _process_data
+    data.reraise()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/_utils.py", line 543, in reraise
+    raise exception
+RuntimeError: Caught RuntimeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/worker.py", line 302, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 61, in fetch
+    return self.collate_fn(data)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 265, in default_collate
+    return collate(batch, collate_fn_map=default_collate_fn_map)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 143, in collate
+    return [collate(samples, collate_fn_map=collate_fn_map) for samples in transposed]  # Backwards compatibility.
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 143, in <listcomp>
+    return [collate(samples, collate_fn_map=collate_fn_map) for samples in transposed]  # Backwards compatibility.
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 120, in collate
+    return collate_fn_map[elem_type](batch, collate_fn_map=collate_fn_map)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 162, in collate_tensor_fn
+    out = elem.new(storage).resize_(len(batch), *list(elem.size()))
+RuntimeError: Trying to resize storage that is not resizable
+
+srun: error: etse-75-51: task 2: Exited with exit code 1
+Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/AEExample_Script.py", line 195, in <module>
+    for images, _ in train_loader:
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 628, in __next__
+    data = self._next_data()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1333, in _next_data
+    return self._process_data(data)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1359, in _process_data
+    data.reraise()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/_utils.py", line 543, in reraise
+    raise exception
+RuntimeError: Caught RuntimeError in DataLoader worker process 1.
+Original Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/worker.py", line 302, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 61, in fetch
+    return self.collate_fn(data)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 265, in default_collate
+    return collate(batch, collate_fn_map=default_collate_fn_map)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 143, in collate
+    return [collate(samples, collate_fn_map=collate_fn_map) for samples in transposed]  # Backwards compatibility.
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 143, in <listcomp>
+    return [collate(samples, collate_fn_map=collate_fn_map) for samples in transposed]  # Backwards compatibility.
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 120, in collate
+    return collate_fn_map[elem_type](batch, collate_fn_map=collate_fn_map)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 162, in collate_tensor_fn
+    out = elem.new(storage).resize_(len(batch), *list(elem.size()))
+RuntimeError: Trying to resize storage that is not resizable
+
+srun: error: etse-75-51: task 1: Exited with exit code 1
+Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/AEExample_Script.py", line 195, in <module>
+    for images, _ in train_loader:
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 628, in __next__
+    data = self._next_data()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1333, in _next_data
+    return self._process_data(data)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1359, in _process_data
+    data.reraise()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/_utils.py", line 543, in reraise
+    raise exception
+RuntimeError: Caught RuntimeError in DataLoader worker process 1.
+Original Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/worker.py", line 302, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 61, in fetch
+    return self.collate_fn(data)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 265, in default_collate
+    return collate(batch, collate_fn_map=default_collate_fn_map)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 143, in collate
+    return [collate(samples, collate_fn_map=collate_fn_map) for samples in transposed]  # Backwards compatibility.
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 143, in <listcomp>
+    return [collate(samples, collate_fn_map=collate_fn_map) for samples in transposed]  # Backwards compatibility.
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 120, in collate
+    return collate_fn_map[elem_type](batch, collate_fn_map=collate_fn_map)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/collate.py", line 162, in collate_tensor_fn
+    out = elem.new(storage).resize_(len(batch), *list(elem.size()))
+RuntimeError: Trying to resize storage that is not resizable
+
+srun: error: etse-75-51: task 3: Exited with exit code 1

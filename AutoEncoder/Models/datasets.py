@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.data as data
-#import torchvision
+# import torchvision
 
 import numpy as np
 from random import shuffle
@@ -11,7 +11,7 @@ import pandas as pd
 from PIL import Image
 import torchvision.transforms as transforms
 
-    
+
 # =============================================================================
 # Standard dataset (Single Objective)
 # =============================================================================
@@ -22,19 +22,18 @@ class Standard_Dataset(data.Dataset):
         self.X = X
         self.y = Y
         self.transformation = transformation
- 
+
     def __len__(self):
-        
+
         return len(self.X)
 
     def __getitem__(self, idx):
-        
+
         if self.y is not None:
             return torch.from_numpy(self.X[idx]).float(), torch.from_numpy(np.array(self.y[idx]))
         else:
             return torch.from_numpy(self.X[idx])
 
-             
 
 class ImageDataset(data.Dataset):
     def __init__(self, csv_file, transform=None):
@@ -48,26 +47,50 @@ class ImageDataset(data.Dataset):
 
         if self.transform is None:
             self.transform = transforms.Compose([
+                transforms.Resize((256, 256)),
                 transforms.ToTensor(),
             ])
 
+        # Validar imágenes válidas durante la inicialización
+        self.valid_indices = []
+        invalid_count = 0
+
+        for idx in range(len(self.data)):
+            img_path = self.data.iloc[idx]['PATH']
+            # img_path = img_path.replace("Data\\Cropped", "/export/fhome/maed/HelicoDataSet/CrossValidation/Cropped")
+            # img_path = img_path.replace("\\", "/")
+
+            try:
+                # Intentar abrir la imagen para verificar que existe y es válida
+                with Image.open(img_path) as img:
+                    img.verify()  # Verifica que el archivo es una imagen válida
+                self.valid_indices.append(idx)
+            except Exception:
+                invalid_count += 1
+
+        print(
+            f"✓ Imágenes válidas: {len(self.valid_indices)} de {len(self.data)} ({invalid_count} imágenes descartadas)")
+
     def __len__(self):
-        return len(self.data)
+        return len(self.valid_indices)
 
     def __getitem__(self, idx):
-        img_path = self.data.iloc[idx]['PATH']
-        img_path = img_path.replace("Data\\Cropped", "/export/fhome/maed/HelicoDataSet/CrossValidation/Cropped")
-        img_path = img_path.replace("\\", "/")
+        # La ruta en el CSV ahora es absoluta y correcta, no necesita reemplazo
+        img_path = self.data.iloc[idx]['PATH'] 
         codi = self.data.iloc[idx]['CODI']
 
-        image = Image.open(img_path).convert('RGB')
+        # Asegúrate de que la imagen se abra correctamente
+        try:
+            image = Image.open(img_path).convert('RGB')
+        except FileNotFoundError:
+            print(f"¡Error! No se pudo abrir la imagen: {img_path}")
+            # Retorna tensores vacíos o maneja el error como prefieras
+            return torch.empty(0), codi 
+        except Exception as e:
+            print(f"Error abriendo {img_path}: {e}")
+            return torch.empty(0), codi
 
         if self.transform:
             image = self.transform(image)
 
         return image, codi
-
-
-
-
-

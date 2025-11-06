@@ -1,0 +1,11 @@
+Loading Annotated Dataset for RED Metrics Thresholding...
+✓ Imágenes válidas: 2974 de 2974 (0 imágenes descartadas)
+✓ Imágenes válidas: 127841 de 127841 (0 imágenes descartadas)
+Creating DataLoaders...
+Training AutoEncoder Model...
+Epoch 1/50
+Input shape: torch.Size([32, 3, 256, 256])
+Expected output shape: torch.Size([32, 3, 256, 256])
+Actual output shape: torch.Size([32, 3, 256, 256])
+Epoch 1/50, Train Loss: 0.0121, Val Loss: 0.0010
+Epoch 2/50

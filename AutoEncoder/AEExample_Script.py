@@ -183,7 +183,7 @@ model = model.to(device)
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-num_epochs = 50
+num_epochs = 3
 best_val_loss = float('inf')
 save_path = f'Models/AE_Config{Config}_best.pth'
 
@@ -192,11 +192,20 @@ for epoch in range(num_epochs):
     # Training
     model.train()
     train_loss = 0.0
-    for images, _ in train_loader:
+    for batch_idx, (images, _) in enumerate(train_loader):
         images = images.to(device)
+
+        # Debug solo en el primer batch del primer epoch
+        if epoch == 0 and batch_idx == 0:
+            print(f"Input shape: {images.shape}")
+            print(f"Expected output shape: {images.shape}")
 
         optimizer.zero_grad()
         outputs = model(images)
+
+        if epoch == 0 and batch_idx == 0:
+            print(f"Actual output shape: {outputs.shape}")
+
         loss = criterion(outputs, images)
         loss.backward()
         optimizer.step()
