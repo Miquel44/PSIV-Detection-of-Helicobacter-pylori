@@ -1,0 +1,12 @@
+{
+  "total_train_patches": 952,
+  "total_val_patches": 163,
+  "train_patients": 99,
+  "val_patients": 24,
+  "val_positive_patches": 42,
+  "val_negative_patches": 121,
+  "total_test_patches": 161,
+  "test_patients": 31,
+  "test_positive_patches": 18,
+  "test_negative_patches": 143
+}
