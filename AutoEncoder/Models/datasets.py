@@ -36,13 +36,18 @@ class Standard_Dataset(data.Dataset):
 
 
 class ImageDataset(data.Dataset):
-    def __init__(self, csv_file, transform=None):
+    def __init__(self, csv_file, transform=None, verify_images=True):
         """
         Args:
             csv_file (str): Ruta al archivo CSV con columnas 'codi' y 'path'
             transform (callable, optional): Transformaciones a aplicar a las imágenes
         """
-        self.data = pd.read_csv(csv_file)
+        # Cargar CSV o DataFrame
+        if isinstance(csv_file, str):
+            self.data = pd.read_csv(csv_file).reset_index(drop=True)
+        else:
+            self.data = csv_file.reset_index(drop=True)
+
         self.transform = transform
 
         if self.transform is None:
@@ -55,40 +60,41 @@ class ImageDataset(data.Dataset):
         self.valid_indices = []
         invalid_count = 0
 
-        for idx in range(len(self.data)):
-            img_path = self.data.iloc[idx]['PATH']
-            # img_path = img_path.replace("Data\\Cropped", "/export/fhome/maed/HelicoDataSet/CrossValidation/Cropped")
-            # img_path = img_path.replace("\\", "/")
-
-            try:
-                # Intentar abrir la imagen para verificar que existe y es válida
-                with Image.open(img_path) as img:
-                    img.verify()  # Verifica que el archivo es una imagen válida
-                self.valid_indices.append(idx)
-            except Exception:
-                invalid_count += 1
-
-        print(
-            f"✓ Imágenes válidas: {len(self.valid_indices)} de {len(self.data)} ({invalid_count} imágenes descartadas)")
+        if verify_images:
+            print("Verificando imágenes... (solo se hace una vez)")
+            for idx in range(len(self.data)):
+                img_path = self.data.loc[idx, 'PATH']
+                try:
+                    with Image.open(img_path) as img:
+                        img.verify()
+                    self.valid_indices.append(idx)
+                except Exception:
+                    invalid_count += 1
+            print(f"✓ Válidas: {len(self.valid_indices)} / {len(self.data)} "
+                  f"({invalid_count} descartadas)")
+        else:
+            # Si no verificamos, asumimos que todas son válidas
+            self.valid_indices = list(range(len(self.data)))
 
     def __len__(self):
         return len(self.valid_indices)
 
-    def __getitem__(self, idx):
-        # La ruta en el CSV ahora es absoluta y correcta, no necesita reemplazo
-        img_path = self.data.iloc[idx]['PATH'] 
-        codi = self.data.iloc[idx]['CODI']
+    def __getitem__(self, index):
+        # índice real dentro del CSV original
+        real_idx = self.valid_indices[index]
 
-        # Asegúrate de que la imagen se abra correctamente
+        img_path = self.data.loc[real_idx, 'PATH']
+        codi     = self.data.loc[real_idx, 'CODI']  # patient_id
+
         try:
             image = Image.open(img_path).convert('RGB')
         except FileNotFoundError:
             print(f"¡Error! No se pudo abrir la imagen: {img_path}")
             # Retorna tensores vacíos o maneja el error como prefieras
-            return torch.empty(0), codi 
+            return torch.zeros(3, 256, 256), codi 
         except Exception as e:
-            print(f"Error abriendo {img_path}: {e}")
-            return torch.empty(0), codi
+            print(f"❌ Error abriendo {img_path}: {e}")
+            return torch.zeros(3, 256, 256), codi
 
         if self.transform:
             image = self.transform(image)

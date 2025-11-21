@@ -38,6 +38,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import glob
+from sklearn.model_selection import GroupKFold, GroupShuffleSplit
 
 # Torch Libraries
 from torch.utils.data import DataLoader, random_split
@@ -84,218 +85,342 @@ def AEConfigs(Config):
     
     return net_paramsEnc,net_paramsDec,inputmodule_paramsDec
 
+if __name__ == "__main__":
+    ######################### 0. EXPERIMENT PARAMETERS
+    # 0.1 AE PARAMETERS
+    inputmodule_paramsEnc={}
+    inputmodule_paramsEnc['num_input_channels']=3
+    num_folds = 3
+    batch_size = 32
+    epochs = 3
+    learning_rate = 1e-3
+    train = False
 
-######################### 0. EXPERIMENT PARAMETERS
-# 0.1 AE PARAMETERS
-inputmodule_paramsEnc={}
-inputmodule_paramsEnc['num_input_channels']=3
+    # 0.1 NETWORK TRAINING PARAMS
+    # WandB Initialization
+    # run = wandb.init(
+    #     entity="Grup02DeepProject",  # Cambia esto por tu nombre o equipo en WandB
+    #     project="HPilory-Autoencoder",  # Cambia el nombre del proyecto
+    #     config={
+    #         "learning_rate": 0.001,
+    #         "architecture": "AutoEncoderCNN",
+    #         "batch_size": 32,
+    #         "epochs": 50,
+    #         "Config": "1"
+    #     },
+    # )
+    # config = wandb.config
 
-# 0.1 NETWORK TRAINING PARAMS
-# WandB Initialization
-# run = wandb.init(
-#     entity="Grup02DeepProject",  # Cambia esto por tu nombre o equipo en WandB
-#     project="HPilory-Autoencoder",  # Cambia el nombre del proyecto
-#     config={
-#         "learning_rate": 0.001,
-#         "architecture": "AutoEncoderCNN",
-#         "batch_size": 32,
-#         "epochs": 50,
-#         "Config": "1"
-#     },
-# )
-# config = wandb.config
+    # 0.2 FOLDERS
+    cropped = "Data/Cropped"
+    annotated = "Data/Annotated"
+    hold = "Data/HoldOut"
 
-# 0.2 FOLDERS
+    #### 1. LOAD DATA: Implement 
+    # 1.1 Patient Diagnosis
+    df_cropped = pd.read_csv("Data/PatientDiagnosis_AE.csv")
+    image_paths = df_cropped["PATH"].tolist()
+    patient_ids = df_cropped["CODI"].tolist()
 
+    # 1.2 Patches Data
+    df_annotated = pd.read_csv("Data/annotated.csv")
 
+    # 1.3 HoldOut Data
+    # df_holdout = pd.read_csv("Datasets/HoldOut_clean.csv")
 
-#### 1. LOAD DATA: Implement 
-# 1.1 Patient Diagnosis
+    #### 2. DATA SPLITING INTO INDEPENDENT SETS
 
+    if num_folds > 1 and train:
+        gkf = GroupKFold(n_splits=num_folds)
 
-# 1.2 Patches Data
+        fold_loaders = []  # almacenamos tuplas (train_loader, val_loader) por fold
 
+        for fold_idx, (train_idx, val_idx) in enumerate(gkf.split(image_paths, groups=patient_ids)):
 
-#### 2. DATA SPLITING INTO INDEPENDENT SETS
+            print(f"\n========= FOLD {fold_idx} / {num_folds} =========")
 
-# 2.0 Annotated set for FRed optimal threshold
-print("Loading Annotated Dataset for RED Metrics Thresholding...")
-annotated_dataset = ImageDataset('Datasets/HP_WSI-CoordAllAnnotatedPatches_AE.csv')
-# 2.1 AE trainnig set
-ae_dataset = ImageDataset('Datasets/PatientDiagnosis_AE.csv')
-train_size = int(0.8 * len(ae_dataset))
-val_size = len(ae_dataset) - train_size
+            # Subsets del CSV
+            df_train_fold = df_cropped.iloc[train_idx]
+            df_val_fold   = df_cropped.iloc[val_idx]
 
-train_dataset, val_dataset = random_split(
-    ae_dataset,
-    [train_size, val_size],
-    generator=torch.Generator().manual_seed(42)
-)
+            # Dataset por fold
+            fold_train_dataset = ImageDataset(df_train_fold, verify_images=False)
+            fold_val_dataset   = ImageDataset(df_val_fold, verify_images=False)
 
-# 2.1 Diagosis crossvalidation set
+            # DataLoaders por fold
+            train_loader = DataLoader(
+                fold_train_dataset,
+                batch_size=batch_size,
+                shuffle=True,
+                num_workers=4,
+                pin_memory=True,
+                prefetch_factor=2,
+                persistent_workers=True
+            )
 
-#### 3. lOAD PATCHES
-print("Creating DataLoaders...")
-batch_size = 32
+            val_loader = DataLoader(
+                fold_val_dataset,
+                batch_size=batch_size,
+                shuffle=False,
+                num_workers=4,
+                pin_memory=True,
+                prefetch_factor=2,
+                persistent_workers=True
+            )
 
-train_loader = DataLoader(
-    train_dataset,
-    batch_size=batch_size,
-    shuffle=True,
-    num_workers=4,
-    pin_memory=True
-)
+            fold_loaders.append((train_loader, val_loader))
 
-val_loader = DataLoader(
-    val_dataset,
-    batch_size=batch_size,
-    shuffle=False,
-    num_workers=4,
-    pin_memory=True
-)
+            print(f"Train images: {len(fold_train_dataset)}")
+            print(f"Val images:   {len(fold_val_dataset)}")
 
-annotated_loader = DataLoader(
-    annotated_dataset,
-    batch_size=batch_size,
-    shuffle=False,
-    num_workers=4
-)
-### 4. AE TRAINING
+    #### 3. lOAD PATCHES
+    print("Creating DataLoaders...")
 
-# EXPERIMENTAL DESIGN:
-# TRAIN ON AE PATIENTS AN AUTOENCODER, USE THE ANNOTATED PATIENTS TO SET THE
-# THRESHOLD ON FRED, VALIDATE FRED FOR DIAGNOSIS ON A 10 FOLD SCHEME OF REMAINING
-# CASES.
+    if num_folds <= 1 and train:
+        gss = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+        train_idx, val_idx = next(gss.split(image_paths, groups=patient_ids))
 
-# 4.1 Data Split
+        df_train_final = df_cropped.iloc[train_idx].reset_index(drop=True)
+        df_val_final   = df_cropped.iloc[val_idx].reset_index(drop=True)
 
+        train_final_loader = DataLoader(
+            ImageDataset(df_train_final, verify_images=False),
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=4,
+            pin_memory=True,
+            prefetch_factor=2,
+            persistent_workers=True
+        )
 
-###### CONFIG1
-Config='1'
-net_paramsEnc,net_paramsDec,inputmodule_paramsDec=AEConfigs(Config)
-model=AutoEncoderCNN(inputmodule_paramsEnc, net_paramsEnc,
-                     inputmodule_paramsDec, net_paramsDec)
-# 4.2 Model Training
-print("Training AutoEncoder Model...")
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = model.to(device)
+        val_final_loader = DataLoader(
+            ImageDataset(df_val_final, verify_images=False),
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=4,
+            pin_memory=True,
+            prefetch_factor=2,
+            persistent_workers=True
+        )
 
-criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+    annotated_loader = DataLoader(
+        ImageDataset(df_annotated, verify_images=False),
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+        prefetch_factor=2,
+        persistent_workers=True
+    )
 
-num_epochs = 3
-best_val_loss = float('inf')
-save_path = f'Models/AE_Config{Config}_best.pth'
+    # holdout_loader = DataLoader(
+    #     ImageDataset(df_holdout),
+    #     batch_size=batch_size,
+    #     shuffle=False,
+    #     num_workers=4,
+    #     prefetch_factor=2,
+    #     persistent_workers=True
+    # )
 
-for epoch in range(num_epochs):
-    print(f'Epoch {epoch + 1}/{num_epochs}')
-    # Training
-    model.train()
-    train_loss = 0.0
-    for batch_idx, (images, _) in enumerate(train_loader):
-        images = images.to(device)
+    ### 4. AE TRAINING
 
-        # Debug solo en el primer batch del primer epoch
-        if epoch == 0 and batch_idx == 0:
-            print(f"Input shape: {images.shape}")
-            print(f"Expected output shape: {images.shape}")
+    # EXPERIMENTAL DESIGN:
+    # TRAIN ON AE PATIENTS AN AUTOENCODER, USE THE ANNOTATED PATIENTS TO SET THE
+    # THRESHOLD ON FRED, VALIDATE FRED FOR DIAGNOSIS ON A 10 FOLD SCHEME OF REMAINING
+    # CASES.
 
-        optimizer.zero_grad()
-        outputs = model(images)
+    ###### CONFIG
+    Config='1'
+    net_paramsEnc,net_paramsDec,inputmodule_paramsDec=AEConfigs(Config)
 
-        if epoch == 0 and batch_idx == 0:
-            print(f"Actual output shape: {outputs.shape}")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    criterion = nn.MSELoss()
 
-        loss = criterion(outputs, images)
-        loss.backward()
-        optimizer.step()
+    # 4.1 Model Training
+    def train_one_model(train_loader, val_loader, fold_idx=None):
+        """Entrena un modelo (para un fold o para el entrenamiento clásico)."""
 
-        train_loss += loss.item()
+        model = AutoEncoderCNN(inputmodule_paramsEnc, net_paramsEnc,
+                                inputmodule_paramsDec, net_paramsDec)
+        model = model.to(device)
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    # Validation
-    model.eval()
-    val_loss = 0.0
-    with torch.no_grad():
-        for images, _ in val_loader:
-            images = images.to(device)
-            outputs = model(images)
-            loss = criterion(outputs, images)
-            val_loss += loss.item()
+        best_val_loss = float('inf')
+        tag = f"_fold{fold_idx}" if fold_idx is not None else ""
+        save_path = f"AutoEncoder/Models/Trained/AE_Config{Config}{tag}_best.pth"
 
-    train_loss /= len(train_loader)
-    val_loss /= len(val_loader)
+        print(f"\n>>> Training AutoEncoder (Config {Config}{tag})...")
+        first_batch_debug_done = False
 
-    print(f'Epoch {epoch + 1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
+        for epoch in range(epochs):
+            print(f'Epoch {epoch + 1}/{epochs}')
+            # -------- TRAIN --------
+            model.train()
+            train_loss = 0.0
 
-    # Log losses to wandb
+            for batch_idx, (images, _) in enumerate(train_loader):
+                images = images.to(device, non_blocking=True)
+
+                # Debug de shapes solo una vez
+                if not first_batch_debug_done:
+                    print(f"Input shape: {images.shape}")
+                    first_batch_debug_done = True
+
+                optimizer.zero_grad()
+                outputs = model(images)
+
+                loss = criterion(outputs, images)
+                loss.backward()
+                optimizer.step()
+
+                train_loss += loss.item()
+
+            # -------- VALIDATION --------
+            model.eval()
+            val_loss = 0.0
+            with torch.no_grad():
+                for images, _ in val_loader:
+                    images = images.to(device, non_blocking=True)
+                    outputs = model(images)
+                    loss = criterion(outputs, images)
+                    val_loss += loss.item()
+
+            train_loss /= len(train_loader)
+            val_loss   /= len(val_loader)
+
+            print(f'Epoch {epoch + 1}/{epochs}, '
+                f'Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
+
+            # Guardar mejor modelo
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                torch.save(model.state_dict(), save_path)
+
+        print(f"Training complete. Best val loss: {best_val_loss:.4f}")
+
+        # Cargar el mejor modelo antes de devolverlo
+        model.load_state_dict(torch.load(save_path, map_location=device))
+
+        # Liberar algo de memoria
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        return model, best_val_loss
+
+    # Make
+    fold_val_losses = []
+
+    if train:
+        if num_folds > 1:
+            # ----- K-FOLD -----
+            for fold_idx, (train_loader, val_loader) in enumerate(fold_loaders):
+                print(f"\n########## FOLD {fold_idx + 1} / {num_folds} ##########")
+                model_fold, best_val = train_one_model(train_loader, val_loader, fold_idx=fold_idx)
+                fold_val_losses.append(best_val)
+
+            print("\n===== Cross-validation results =====")
+            for i, v in enumerate(fold_val_losses):
+                print(f"Fold {i}: best val loss = {v:.4f}")
+            print(f"Mean val loss: {np.mean(fold_val_losses):.4f} | "
+                f"Std: {np.std(fold_val_losses):.4f}")
+
+        else:
+            # ----- ENTRENAMIENTO CLÁSICO -----
+            # Aquí puedes decidir si:
+            #  - usas un split train/val dentro de df_cropped, o
+            #  - entrenas con cropped_loader y validas con annotated_loader
+            model_final, best_val = train_one_model(train_final_loader, val_final_loader, fold_idx=None)
+
+    # Free GPU Memory After Training
+    gc.collect()
+    torch.cuda.empty_cache()
+
+    if num_folds > 1 and train:
+        exit()
+
+    #### 5. AE RED METRICS THRESHOLD LEARNING
+    def reconstruction_error(images, outputs):
+        return torch.mean((outputs - images) ** 2, dim=[1,2,3]).detach().cpu().numpy()
+    
+    def compute_errors_on_annotated(model, annotated_df, batch_size=32, save_csv="Annotated_Errors.csv"):
+
+        device = next(model.parameters()).device
+
+        annotated_loader = DataLoader(
+            ImageDataset(annotated_df, verify_images=False),
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=4,
+            pin_memory=True,
+            persistent_workers=True
+        )
+
+        all_records = []
+        model.eval()
+
+        with torch.no_grad():
+            processed = 0
+
+            for images, codis in annotated_loader:
+                images = images.to(device, non_blocking=True)
+                outputs = model(images)
+
+                errors = reconstruction_error(images, outputs)
+
+                # Fetch matching rows from DF
+                for err in errors:
+                    row = annotated_df.iloc[processed]
+                    all_records.append({
+                        "CODI": row["CODI"],
+                        "PATH": row["PATH"],
+                        "PRESENCE": int(row["PRESENCE"]),  # 0 = sano, 1 = HPylori
+                        "ERROR": float(err)
+                    })
+                    processed += 1
+
+        df_errors = pd.DataFrame(all_records)
+        df_errors.to_csv(save_csv, index=False)
+        print(f"Saved annotated error CSV to {save_csv}")
+
+        return df_errors
+
+    ## 5.1 AE Model Evaluation
+    print("Evaluating AutoEncoder Model on Annotated Dataset...")
+
+    if not train:
+        model_final = AutoEncoderCNN(inputmodule_paramsEnc, net_paramsEnc,
+                             inputmodule_paramsDec, net_paramsDec)
+
+        model_final.load_state_dict(torch.load("AutoEncoder/Models/Trained/AE_Config1_fold1_best.pth", map_location=device))
+        model_final = model_final.to(device)
+
+    df_errors_annotated = compute_errors_on_annotated(
+        model_final,
+        df_annotated,   # <-- debe tener CODI, PATH, PRESENCE
+        batch_size=32,
+        save_csv="AutoEncoder/Results/Annotated_Errors.csv"
+    )
+
+    # Log reconstruction errors summary to wandb
     # wandb.log({
-    #     "epoch": epoch + 1,
-    #     "train_loss": train_loss,
-    #     "val_loss": val_loss
+    #     "mean_reconstruction_error": np.mean(reconstruction_errors),
+    #     "std_reconstruction_error": np.std(reconstruction_errors)
     # })
 
-    # Guardar mejor modelo
-    if val_loss < best_val_loss:
-        best_val_loss = val_loss
-        torch.save(model.state_dict(), save_path)
-        # wandb.run.summary["best_val_loss"] = best_val_loss
-        # wandb.save(save_path)
+    # wandb.save(results_path)
 
-print("Training complete.")
+    # Free GPU Memory After Evaluation
+    gc.collect()
+    torch.cuda.empty_cache()
 
-# Cargar mejor modelo
-model.load_state_dict(torch.load(save_path))
+    # Finish wandb run
+    # wandb.finish()
 
-# Free GPU Memory After Training
-gc.collect()
-torch.cuda.empty_cache()
-#### 5. AE RED METRICS THRESHOLD LEARNING
+    ## 5.2 RedMetrics Threshold 
 
-## 5.1 AE Model Evaluation
-print("Evaluating AutoEncoder Model on Annotated Dataset...")
-model.eval()
-reconstruction_errors = []
-codis = []
+    ### 6. DIAGNOSIS CROSSVALIDATION
+    ### 6.1 Load Patches 4 CrossValidation of Diagnosis
 
-with torch.no_grad():
-    for images, codi in annotated_loader:
-        images = images.to(device)
-        outputs = model(images)
-
-        # Error por imagen (MSE por píxel)
-        errors = torch.mean((images - outputs) ** 2, dim=[1, 2, 3])
-        reconstruction_errors.extend(errors.cpu().numpy())
-        codis.extend(codi)
-
-# Guardar resultados
-print("Saving reconstruction errors...")
-os.makedirs("Results", exist_ok=True)
-results_df = pd.DataFrame({
-    'CODI': codis,
-    'reconstruction_error': reconstruction_errors
-})
-results_path = f'Results/AE_Config{Config}_errors.csv'
-results_df.to_csv(results_path, index=False)
-
-# Log reconstruction errors summary to wandb
-# wandb.log({
-#     "mean_reconstruction_error": np.mean(reconstruction_errors),
-#     "std_reconstruction_error": np.std(reconstruction_errors)
-# })
-
-# wandb.save(results_path)
-
-# Free GPU Memory After Evaluation
-gc.collect()
-torch.cuda.empty_cache()
-
-# Finish wandb run
-# wandb.finish()
-
-## 5.2 RedMetrics Threshold 
-
-### 6. DIAGNOSIS CROSSVALIDATION
-### 6.1 Load Patches 4 CrossValidation of Diagnosis
-
-### 6.2 Diagnostic Power
+    ### 6.2 Diagnostic Power
 
