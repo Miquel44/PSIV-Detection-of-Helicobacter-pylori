@@ -1,3 +1,5 @@
 .gitignore
 MyVirtualEnv/
 Data/
+.gitignore
+Data/
