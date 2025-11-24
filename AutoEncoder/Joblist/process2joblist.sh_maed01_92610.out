@@ -1,0 +1,16 @@
+======================================================================
+AUTOENCODER K-FOLD CROSS-VALIDATION TRAINING
+======================================================================
+
+Configuración:
+  - Arquitectura: Config 1
+  - Número de folds: 5
+  - Épocas por fold: 50
+  - Batch size: 32
+  - Device: cuda
+  - Datos: /export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/data_splits
+
+======================================================================
+FOLD 1/5
+======================================================================
+Cargando datos del fold 1...

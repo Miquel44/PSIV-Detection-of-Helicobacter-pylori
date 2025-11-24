@@ -1,0 +1,13 @@
+🖥️  Dispositivo: cuda
+
+🔧 Cargando backbone desde /export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/backbone_phase1.pth
+✅ Dimensión de embeddings: 3200
+
+📂 Procesando 147 pacientes...
+
+✅ Total pacientes procesados: 147
+✅ Total patches embeddings: 127841
+✅ Promedio patches/paciente: 869.7
+
+💾 Embeddings guardados en: ./precomputed_patient_embeddings.npz
+💾 Tamaño del archivo: 1339.5 MB

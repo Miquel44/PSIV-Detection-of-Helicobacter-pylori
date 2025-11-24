@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/main_phase1.py", line 8, in <module>
+    from tqdm import tqdm
+ModuleNotFoundError: No module named 'tqdm'
+srun: error: etse-75-51: task 0: Exited with exit code 1

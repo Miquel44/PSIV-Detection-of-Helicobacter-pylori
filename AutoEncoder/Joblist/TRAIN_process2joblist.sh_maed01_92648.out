@@ -1,0 +1,110 @@
+Device: cuda
+Pacientes etiquetados: 309
+Dim embedding (NPZ): 3200
+Train patients: 117 | Val patients: 30
+
+Epoch 1 | Train Loss: 0.4878 | Val Acc: 0.3333
+              precision    recall  f1-score   support
+
+    Negative     0.3333    1.0000    0.5000        10
+    Positive     0.0000    0.0000    0.0000        20
+
+    accuracy                         0.3333        30
+   macro avg     0.1667    0.5000    0.2500        30
+weighted avg     0.1111    0.3333    0.1667        30
+
+Confusion Matrix:
+ [[10  0]
+ [20  0]]
+Saved best model: /export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/patient_model_phase3.pth
+
+Epoch 2 | Train Loss: 0.4767 | Val Acc: 0.3333
+              precision    recall  f1-score   support
+
+    Negative     0.3333    1.0000    0.5000        10
+    Positive     0.0000    0.0000    0.0000        20
+
+    accuracy                         0.3333        30
+   macro avg     0.1667    0.5000    0.2500        30
+weighted avg     0.1111    0.3333    0.1667        30
+
+Confusion Matrix:
+ [[10  0]
+ [20  0]]
+No improvement (1/5)
+
+Epoch 3 | Train Loss: 0.5112 | Val Acc: 0.3333
+              precision    recall  f1-score   support
+
+    Negative     0.3333    1.0000    0.5000        10
+    Positive     0.0000    0.0000    0.0000        20
+
+    accuracy                         0.3333        30
+   macro avg     0.1667    0.5000    0.2500        30
+weighted avg     0.1111    0.3333    0.1667        30
+
+Confusion Matrix:
+ [[10  0]
+ [20  0]]
+No improvement (2/5)
+
+Epoch 4 | Train Loss: 0.4701 | Val Acc: 0.3333
+              precision    recall  f1-score   support
+
+    Negative     0.3333    1.0000    0.5000        10
+    Positive     0.0000    0.0000    0.0000        20
+
+    accuracy                         0.3333        30
+   macro avg     0.1667    0.5000    0.2500        30
+weighted avg     0.1111    0.3333    0.1667        30
+
+Confusion Matrix:
+ [[10  0]
+ [20  0]]
+No improvement (3/5)
+
+Epoch 5 | Train Loss: 0.4958 | Val Acc: 0.3333
+              precision    recall  f1-score   support
+
+    Negative     0.3333    1.0000    0.5000        10
+    Positive     0.0000    0.0000    0.0000        20
+
+    accuracy                         0.3333        30
+   macro avg     0.1667    0.5000    0.2500        30
+weighted avg     0.1111    0.3333    0.1667        30
+
+Confusion Matrix:
+ [[10  0]
+ [20  0]]
+No improvement (4/5)
+
+Epoch 6 | Train Loss: 0.4885 | Val Acc: 0.3333
+              precision    recall  f1-score   support
+
+    Negative     0.3333    1.0000    0.5000        10
+    Positive     0.0000    0.0000    0.0000        20
+
+    accuracy                         0.3333        30
+   macro avg     0.1667    0.5000    0.2500        30
+weighted avg     0.1111    0.3333    0.1667        30
+
+Confusion Matrix:
+ [[10  0]
+ [20  0]]
+No improvement (5/5)
+Early stopping.
+
+FINAL EVALUATION
+Val Acc: 0.3333
+              precision    recall  f1-score   support
+
+    Negative     0.3333    1.0000    0.5000        10
+    Positive     0.0000    0.0000    0.0000        20
+
+    accuracy                         0.3333        30
+   macro avg     0.1667    0.5000    0.2500        30
+weighted avg     0.1111    0.3333    0.1667        30
+
+Confusion Matrix:
+ [[10  0]
+ [20  0]]
