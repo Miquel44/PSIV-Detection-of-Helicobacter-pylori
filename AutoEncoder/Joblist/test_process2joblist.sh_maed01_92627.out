@@ -1,0 +1,125 @@
+Dispositivo: cuda
+🔍 Primeros 5 patches POSITIVOS del Excel:
+     Pat_ID  Section_ID Window_ID  Presence
+11  B22-124           0       902         1
+17   B22-46           0      1039         1
+18   B22-46           0      1291         1
+19   B22-46           0      1338         1
+20   B22-46           0      1340         1
+
+🔎 DEBUG Positivo #1:
+   Pat_ID: 'B22-124'
+   Section_ID: '0'
+   Window_ID: '902'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-124_0']
+   Carpeta: B22-124_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-124_0/902.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['00759.png', '00902_Aug8.png', '00902_Aug7.png', '00902_Aug1.png', '00415.png']
+
+🔎 DEBUG Positivo #2:
+   Pat_ID: 'B22-46'
+   Section_ID: '0'
+   Window_ID: '1039'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-46_0']
+   Carpeta: B22-46_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-46_0/1039.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['01039_Aug4.png', '01039_Aug8.png', '01760.png', '01039_Aug7.png', '01039_Aug5.png']
+
+🔎 DEBUG Positivo #3:
+   Pat_ID: 'B22-46'
+   Section_ID: '0'
+   Window_ID: '1291'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-46_0']
+   Carpeta: B22-46_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-46_0/1291.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['01039_Aug4.png', '01039_Aug8.png', '01760.png', '01039_Aug7.png', '01039_Aug5.png']
+
+🔎 DEBUG Positivo #4:
+   Pat_ID: 'B22-46'
+   Section_ID: '0'
+   Window_ID: '1338'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-46_0']
+   Carpeta: B22-46_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-46_0/1338.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['01039_Aug4.png', '01039_Aug8.png', '01760.png', '01039_Aug7.png', '01039_Aug5.png']
+
+🔎 DEBUG Positivo #5:
+   Pat_ID: 'B22-46'
+   Section_ID: '0'
+   Window_ID: '1340'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-46_0']
+   Carpeta: B22-46_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-46_0/1340.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['01039_Aug4.png', '01039_Aug8.png', '01760.png', '01039_Aug7.png', '01039_Aug5.png']
+
+🔎 DEBUG Positivo #6:
+   Pat_ID: 'B22-170'
+   Section_ID: '0'
+   Window_ID: '949'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-170_0']
+   Carpeta: B22-170_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-170_0/949.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['01015_Aug7.png', '00949_Aug6.png', '01094_Aug1.png', '01094_Aug4.png', '00949_Aug3.png']
+
+🔎 DEBUG Positivo #7:
+   Pat_ID: 'B22-170'
+   Section_ID: '0'
+   Window_ID: '1015'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-170_0']
+   Carpeta: B22-170_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-170_0/1015.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['01015_Aug7.png', '00949_Aug6.png', '01094_Aug1.png', '01094_Aug4.png', '00949_Aug3.png']
+
+🔎 DEBUG Positivo #8:
+   Pat_ID: 'B22-170'
+   Section_ID: '0'
+   Window_ID: '1094'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-170_0']
+   Carpeta: B22-170_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-170_0/1094.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['01015_Aug7.png', '00949_Aug6.png', '01094_Aug1.png', '01094_Aug4.png', '00949_Aug3.png']
+
+🔎 DEBUG Positivo #9:
+   Pat_ID: 'B22-37'
+   Section_ID: '0'
+   Window_ID: '45'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-37_0']
+   Carpeta: B22-37_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-37_0/45.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['00045_Aug2.png', '00045_Aug4.png', '00045_Aug8.png', '00272_Aug8.png', '00759.png']
+
+🔎 DEBUG Positivo #10:
+   Pat_ID: 'B22-37'
+   Section_ID: '0'
+   Window_ID: '272'
+   ¿Pat_ID en folder_map?: True
+   Carpetas disponibles: ['B22-37_0']
+   Carpeta: B22-37_0, Section: 0
+   Buscando: /export/fhome/maed/HelicoDataSet/CrossValidation/Annotated/B22-37_0/272.png
+   ¿Existe?: False
+   Archivos en carpeta (primeros 5): ['00045_Aug2.png', '00045_Aug4.png', '00045_Aug8.png', '00272_Aug8.png', '00759.png']
+
+📈 RESUMEN FINAL:
+   Patches positivos: 0
+   Patches negativos: 4
+Cargados: (4, 3, 64, 64) (array([0]), array([4]))
+DEBUG — Num samples: 4
+DEBUG — Unique labels: (array([0]), array([4]))

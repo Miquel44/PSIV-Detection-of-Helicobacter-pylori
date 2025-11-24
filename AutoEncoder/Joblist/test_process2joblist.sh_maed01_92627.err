@@ -1,0 +1,31 @@
+Epoch 1/10:   0%|          | 0/1 [00:00<?, ?it/s]Epoch 1/10:   0%|          | 0/1 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/train_phase1_backbone.py", line 202, in <module>
+    main()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/train_phase1_backbone.py", line 179, in main
+    for anchor, positive, negative, _ in tqdm(dataloader, desc=f"Epoch {epoch+1}/{EPOCHS}"):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/tqdm/std.py", line 1181, in __iter__
+    for obj in iterable:
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 628, in __next__
+    data = self._next_data()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1333, in _next_data
+    return self._process_data(data)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1359, in _process_data
+    data.reraise()
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/_utils.py", line 543, in reraise
+    raise exception
+IndexError: Caught IndexError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/worker.py", line 302, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 58, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 58, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/Triplets/datasets.py", line 39, in __getitem__
+    negative_item = random.choice(negative_list)
+  File "/usr/lib/python3.8/random.py", line 290, in choice
+    raise IndexError('Cannot choose from an empty sequence') from None
+IndexError: Cannot choose from an empty sequence
+
+srun: error: etse-75-51: task 0: Exited with exit code 1

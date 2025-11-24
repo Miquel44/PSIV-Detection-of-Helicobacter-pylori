@@ -5,10 +5,10 @@ from sklearn import metrics
 import numpy as np
 from numpy.matlib import repmat
 
-from models_init import *
-from weights_init import weights_init
+from .models_init import *
+from .weights_init import weights_init
 
-from NetBlocks import *
+from .NetBlocks import *
 
 
 

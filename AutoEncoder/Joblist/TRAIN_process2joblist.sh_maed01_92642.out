@@ -1,0 +1,30 @@
+Dispositivo: cuda
+
+📈 RESUMEN FINAL:
+   ✅ Patches positivos: 163
+   ✅ Patches negativos: 1159
+   📊 Ratio pos/neg: 0.14
+Cargados: (1322, 3, 256, 256) (array([0, 1]), array([1159,  163]))
+DEBUG — Num samples: 1322
+DEBUG — Unique labels: (array([0, 1]), array([1159,  163]))
+Epoch 1 — Loss: 0.925278
+Epoch 2 — Loss: 0.787522
+Epoch 3 — Loss: 0.602809
+Epoch 4 — Loss: 0.376234
+Epoch 5 — Loss: 0.297210
+Epoch 6 — Loss: 0.185703
+Epoch 7 — Loss: 0.120936
+Epoch 8 — Loss: 0.105271
+Epoch 9 — Loss: 0.165589
+Epoch 10 — Loss: 0.059842
+Epoch 11 — Loss: 0.125764
+Epoch 12 — Loss: 0.094798
+Epoch 13 — Loss: 0.095735
+Epoch 14 — Loss: 0.128828
+Epoch 15 — Loss: 0.077975
+Epoch 16 — Loss: 0.083578
+Epoch 17 — Loss: 0.191916
+Epoch 18 — Loss: 0.070624
+Epoch 19 — Loss: 0.065787
+Epoch 20 — Loss: 0.084878
+Backbone guardado en: /export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/backbone_phase1.pth

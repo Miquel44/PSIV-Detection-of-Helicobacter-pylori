@@ -1,0 +1,20 @@
+Usando dispositivo: cuda
+Cargando datos desde: /export/fhome/maed/HelicoDataSet/CrossValidation/Cropped/
+   Detectadas 147 carpetas de pacientes.
+   Cargando parches infectados...
+   -> Cargados 98 parches positivos.
+   Cargando parches sanos...
+   -> Cargados 1000 parches negativos.
+Datos Finales: (1098, 3, 64, 64). Distribución: (array([0, 1]), array([1000,   98]))
+--- START TRAINING ---
+Epoch 1/10 - Loss: 0.8754
+Epoch 2/10 - Loss: 0.6410
+Epoch 3/10 - Loss: 0.3677
+Epoch 4/10 - Loss: 0.1298
+Epoch 5/10 - Loss: 0.0894
+Epoch 6/10 - Loss: 0.0540
+Epoch 7/10 - Loss: 0.0425
+Epoch 8/10 - Loss: 0.0244
+Epoch 9/10 - Loss: 0.0487
+Epoch 10/10 - Loss: 0.0183
+Modelo guardado correctamente.
