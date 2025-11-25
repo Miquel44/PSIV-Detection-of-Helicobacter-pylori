@@ -94,7 +94,7 @@ if __name__ == "__main__":
     batch_size = 32
     epochs = 3
     learning_rate = 1e-3
-    train = False
+    train = True
 
     # 0.1 NETWORK TRAINING PARAMS
     # WandB Initialization
@@ -118,12 +118,12 @@ if __name__ == "__main__":
 
     #### 1. LOAD DATA: Implement 
     # 1.1 Patient Diagnosis
-    df_cropped = pd.read_csv("Data/PatientDiagnosis_AE.csv")
+    df_cropped = pd.read_csv("/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/Data/PatientDiagnosis_AE_Linux.csv")
     image_paths = df_cropped["PATH"].tolist()
     patient_ids = df_cropped["CODI"].tolist()
 
     # 1.2 Patches Data
-    df_annotated = pd.read_csv("Data/annotated.csv")
+    # df_annotated = pd.read_csv("Data/annotated.csv")
 
     # 1.3 HoldOut Data
     # df_holdout = pd.read_csv("Datasets/HoldOut_clean.csv")
@@ -203,15 +203,15 @@ if __name__ == "__main__":
             persistent_workers=True
         )
 
-    annotated_loader = DataLoader(
-        ImageDataset(df_annotated, verify_images=False),
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=4,
-        pin_memory=True,
-        prefetch_factor=2,
-        persistent_workers=True
-    )
+    # annotated_loader = DataLoader(
+    #     ImageDataset(df_annotated, verify_images=False),
+    #     batch_size=batch_size,
+    #     shuffle=False,
+    #     num_workers=4,
+    #     pin_memory=True,
+    #     prefetch_factor=2,
+    #     persistent_workers=True
+    # )
 
     # holdout_loader = DataLoader(
     #     ImageDataset(df_holdout),
@@ -247,7 +247,7 @@ if __name__ == "__main__":
 
         best_val_loss = float('inf')
         tag = f"_fold{fold_idx}" if fold_idx is not None else ""
-        save_path = f"AutoEncoder/Models/Trained/AE_Config{Config}{tag}_best.pth"
+        save_path = f"/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/Models/Trained/AE_Config{Config}{tag}_best_Linux.pth"
 
         print(f"\n>>> Training AutoEncoder (Config {Config}{tag})...")
         first_batch_debug_done = False
@@ -392,14 +392,14 @@ if __name__ == "__main__":
         model_final = AutoEncoderCNN(inputmodule_paramsEnc, net_paramsEnc,
                              inputmodule_paramsDec, net_paramsDec)
 
-        model_final.load_state_dict(torch.load("AutoEncoder/Models/Trained/AE_Config1_fold1_best.pth", map_location=device))
+        model_final.load_state_dict(torch.load("/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/Models/Trained/AE_Config1_fold1_best_Linux.pth", map_location=device))
         model_final = model_final.to(device)
 
     df_errors_annotated = compute_errors_on_annotated(
         model_final,
         df_annotated,   # <-- debe tener CODI, PATH, PRESENCE
         batch_size=32,
-        save_csv="AutoEncoder/Results/Annotated_Errors.csv"
+        save_csv="/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/Results/Annotated_Errors_Linux.csv"
     )
 
     # Log reconstruction errors summary to wandb

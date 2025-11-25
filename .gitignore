@@ -1,5 +1,14 @@
 .gitignore
 MyVirtualEnv/
 Data/
-.gitignore
-Data/
+Sistema2/precomputed_patient_embeddings.npz
+# Logs de Slurm
+*.err
+*.out
+
+# Archivos de Python compilados
+__pycache__/
+*.pyc
+
+# Pesos de modelos (muy pesados para git)
+*.pth
