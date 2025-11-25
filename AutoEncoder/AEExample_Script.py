@@ -19,13 +19,13 @@ Guides:
             out: Ims: list of images
                  metadata: list/array of information for each image in Ims
                            (PatID, imfilename,presenceHelico)
-
-    1. Split Code into train and test steps
+                           
+    1. Split Code into train and test steps 
     2. Save trainned models and any intermediate result input of the next step
-
+    
 @authors: debora gil, pau cano
 email: debora@cvc.uab.es, pcano@cvc.uab.es
-Reference: https://arxiv.org/abs/2309.16053
+Reference: https://arxiv.org/abs/2309.16053 
 
 """
 
@@ -51,47 +51,45 @@ import torch.nn as nn
 from Models.AEmodels import AutoEncoderCNN
 from Models.datasets import ImageDataset
 
-
 # WandB
 # import wandb
 
 
 def AEConfigs(Config):
-    net_paramsEnc = {}
-    net_paramsDec = {}
-    inputmodule_paramsDec = {}
-    if Config == '1':
+    net_paramsEnc={}
+    net_paramsDec={}
+    inputmodule_paramsDec={}
+    if Config=='1':
         # CONFIG1
-        net_paramsEnc['block_configs'] = [[32, 32], [64, 64]]
-        net_paramsEnc['stride'] = [[1, 2], [1, 2]]
-        net_paramsDec['block_configs'] = [[64, 32], [32, inputmodule_paramsEnc['num_input_channels']]]
-        net_paramsDec['stride'] = net_paramsEnc['stride']
-        inputmodule_paramsDec['num_input_channels'] = net_paramsEnc['block_configs'][-1][-1]
-
-    elif Config == '2':
+        net_paramsEnc['block_configs']=[[32,32],[64,64]]
+        net_paramsEnc['stride']=[[1,2],[1,2]]
+        net_paramsDec['block_configs']=[[64,32],[32,inputmodule_paramsEnc['num_input_channels']]]
+        net_paramsDec['stride']=net_paramsEnc['stride']
+        inputmodule_paramsDec['num_input_channels']=net_paramsEnc['block_configs'][-1][-1]
+        
+    elif Config=='2':
         # CONFIG 2
-        net_paramsEnc['block_configs'] = [[32], [64], [128], [256]]
-        net_paramsEnc['stride'] = [[2], [2], [2], [2]]
-        net_paramsDec['block_configs'] = [[128], [64], [32], [inputmodule_paramsEnc['num_input_channels']]]
-        net_paramsDec['stride'] = net_paramsEnc['stride']
-        inputmodule_paramsDec['num_input_channels'] = net_paramsEnc['block_configs'][-1][-1]
-
-    elif Config == '3':
+        net_paramsEnc['block_configs']=[[32],[64],[128],[256]]
+        net_paramsEnc['stride']=[[2],[2],[2],[2]]
+        net_paramsDec['block_configs']=[[128],[64],[32],[inputmodule_paramsEnc['num_input_channels']]]
+        net_paramsDec['stride']=net_paramsEnc['stride']
+        inputmodule_paramsDec['num_input_channels']=net_paramsEnc['block_configs'][-1][-1]
+        
+    elif Config=='3':  
         # CONFIG3
-        net_paramsEnc['block_configs'] = [[32], [64], [64]]
-        net_paramsEnc['stride'] = [[1], [2], [2]]
-        net_paramsDec['block_configs'] = [[64], [32], [inputmodule_paramsEnc['num_input_channels']]]
-        net_paramsDec['stride'] = net_paramsEnc['stride']
-        inputmodule_paramsDec['num_input_channels'] = net_paramsEnc['block_configs'][-1][-1]
-
-    return net_paramsEnc, net_paramsDec, inputmodule_paramsDec
-
+        net_paramsEnc['block_configs']=[[32],[64],[64]]
+        net_paramsEnc['stride']=[[1],[2],[2]]
+        net_paramsDec['block_configs']=[[64],[32],[inputmodule_paramsEnc['num_input_channels']]]
+        net_paramsDec['stride']=net_paramsEnc['stride']
+        inputmodule_paramsDec['num_input_channels']=net_paramsEnc['block_configs'][-1][-1]
+    
+    return net_paramsEnc,net_paramsDec,inputmodule_paramsDec
 
 if __name__ == "__main__":
     ######################### 0. EXPERIMENT PARAMETERS
     # 0.1 AE PARAMETERS
-    inputmodule_paramsEnc = {}
-    inputmodule_paramsEnc['num_input_channels'] = 3
+    inputmodule_paramsEnc={}
+    inputmodule_paramsEnc['num_input_channels']=3
     num_folds = 3
     batch_size = 32
     epochs = 3
@@ -118,7 +116,7 @@ if __name__ == "__main__":
     annotated = "Data/Annotated"
     hold = "Data/HoldOut"
 
-    #### 1. LOAD DATA: Implement
+    #### 1. LOAD DATA: Implement 
     # 1.1 Patient Diagnosis
     df_cropped = pd.read_csv("/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/Data/PatientDiagnosis_AE_Linux.csv")
     image_paths = df_cropped["PATH"].tolist()
@@ -138,15 +136,16 @@ if __name__ == "__main__":
         fold_loaders = []  # almacenamos tuplas (train_loader, val_loader) por fold
 
         for fold_idx, (train_idx, val_idx) in enumerate(gkf.split(image_paths, groups=patient_ids)):
+
             print(f"\n========= FOLD {fold_idx} / {num_folds} =========")
 
             # Subsets del CSV
             df_train_fold = df_cropped.iloc[train_idx]
-            df_val_fold = df_cropped.iloc[val_idx]
+            df_val_fold   = df_cropped.iloc[val_idx]
 
             # Dataset por fold
             fold_train_dataset = ImageDataset(df_train_fold, verify_images=False)
-            fold_val_dataset = ImageDataset(df_val_fold, verify_images=False)
+            fold_val_dataset   = ImageDataset(df_val_fold, verify_images=False)
 
             # DataLoaders por fold
             train_loader = DataLoader(
@@ -182,7 +181,7 @@ if __name__ == "__main__":
         train_idx, val_idx = next(gss.split(image_paths, groups=patient_ids))
 
         df_train_final = df_cropped.iloc[train_idx].reset_index(drop=True)
-        df_val_final = df_cropped.iloc[val_idx].reset_index(drop=True)
+        df_val_final   = df_cropped.iloc[val_idx].reset_index(drop=True)
 
         train_final_loader = DataLoader(
             ImageDataset(df_train_final, verify_images=False),
@@ -231,19 +230,18 @@ if __name__ == "__main__":
     # CASES.
 
     ###### CONFIG
-    Config = '1'
-    net_paramsEnc, net_paramsDec, inputmodule_paramsDec = AEConfigs(Config)
+    Config='1'
+    net_paramsEnc,net_paramsDec,inputmodule_paramsDec=AEConfigs(Config)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     criterion = nn.MSELoss()
-
 
     # 4.1 Model Training
     def train_one_model(train_loader, val_loader, fold_idx=None):
         """Entrena un modelo (para un fold o para el entrenamiento clásico)."""
 
         model = AutoEncoderCNN(inputmodule_paramsEnc, net_paramsEnc,
-                               inputmodule_paramsDec, net_paramsDec)
+                                inputmodule_paramsDec, net_paramsDec)
         model = model.to(device)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -288,10 +286,10 @@ if __name__ == "__main__":
                     val_loss += loss.item()
 
             train_loss /= len(train_loader)
-            val_loss /= len(val_loader)
+            val_loss   /= len(val_loader)
 
             print(f'Epoch {epoch + 1}/{epochs}, '
-                  f'Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
+                f'Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
 
             # Guardar mejor modelo
             if val_loss < best_val_loss:
@@ -310,7 +308,6 @@ if __name__ == "__main__":
 
         return model, best_val_loss
 
-
     # Make
     fold_val_losses = []
 
@@ -326,7 +323,7 @@ if __name__ == "__main__":
             for i, v in enumerate(fold_val_losses):
                 print(f"Fold {i}: best val loss = {v:.4f}")
             print(f"Mean val loss: {np.mean(fold_val_losses):.4f} | "
-                  f"Std: {np.std(fold_val_losses):.4f}")
+                f"Std: {np.std(fold_val_losses):.4f}")
 
         else:
             # ----- ENTRENAMIENTO CLÁSICO -----
@@ -342,12 +339,10 @@ if __name__ == "__main__":
     if num_folds > 1 and train:
         exit()
 
-
     #### 5. AE RED METRICS THRESHOLD LEARNING
     def reconstruction_error(images, outputs):
-        return torch.mean((outputs - images) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
-
-
+        return torch.mean((outputs - images) ** 2, dim=[1,2,3]).detach().cpu().numpy()
+    
     def compute_errors_on_annotated(model, annotated_df, batch_size=32, save_csv="Annotated_Errors.csv"):
 
         device = next(model.parameters()).device
@@ -390,22 +385,19 @@ if __name__ == "__main__":
 
         return df_errors
 
-
     ## 5.1 AE Model Evaluation
     print("Evaluating AutoEncoder Model on Annotated Dataset...")
 
     if not train:
         model_final = AutoEncoderCNN(inputmodule_paramsEnc, net_paramsEnc,
-                                     inputmodule_paramsDec, net_paramsDec)
+                             inputmodule_paramsDec, net_paramsDec)
 
-        model_final.load_state_dict(torch.load(
-            "/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/Models/Trained/AE_Config1_fold1_best_Linux.pth",
-            map_location=device))
+        model_final.load_state_dict(torch.load("/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/Models/Trained/AE_Config1_fold1_best_Linux.pth", map_location=device))
         model_final = model_final.to(device)
 
     df_errors_annotated = compute_errors_on_annotated(
         model_final,
-        df_annotated,  # <-- debe tener CODI, PATH, PRESENCE
+        df_annotated,   # <-- debe tener CODI, PATH, PRESENCE
         batch_size=32,
         save_csv="/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/Results/Annotated_Errors_Linux.csv"
     )

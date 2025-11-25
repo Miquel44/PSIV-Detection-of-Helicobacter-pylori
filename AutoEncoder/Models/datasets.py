@@ -89,11 +89,11 @@ class ImageDataset(data.Dataset):
         try:
             image = Image.open(img_path).convert('RGB')
         except FileNotFoundError:
-            print(f"¡Error! No se pudo abrir la imagen: {img_path}")
+            # print(f"¡Error! No se pudo abrir la imagen: {img_path}")
             # Retorna tensores vacíos o maneja el error como prefieras
             return torch.zeros(3, 256, 256), codi 
         except Exception as e:
-            print(f"❌ Error abriendo {img_path}: {e}")
+            # print(f"❌ Error abriendo {img_path}: {e}")
             return torch.zeros(3, 256, 256), codi
 
         if self.transform:
