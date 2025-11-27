@@ -137,7 +137,7 @@ if __name__ == "__main__":
     epochs_no_improve = 0     # contador de épocas sin mejora
     img_size = 256 # SOLO SIRVE PARA CAMBIAR EL NOMBRE DEL PATH, la de verdad se cambia en datasets.py
 
-    train = True
+    train = False
     validate = True
 
     # 0.1 NETWORK TRAINING PARAMS
@@ -229,7 +229,7 @@ if __name__ == "__main__":
                 fold_train_dataset,
                 batch_size=batch_size,
                 shuffle=True,
-                num_workers=4,
+                num_workers=8,
                 pin_memory=True,
                 prefetch_factor=2,
                 persistent_workers=True
@@ -239,7 +239,7 @@ if __name__ == "__main__":
                 fold_val_dataset,
                 batch_size=batch_size,
                 shuffle=False,
-                num_workers=4,
+                num_workers=8,
                 pin_memory=True,
                 prefetch_factor=2,
                 persistent_workers=True
@@ -451,6 +451,26 @@ if __name__ == "__main__":
 
         score = mean_err + lam * max_err
         return score.detach().cpu().numpy()
+
+    def reconstruction_error_hsv_mean_max_hue(images, outputs, lam=0.5):
+        """
+        Error de reconstrucción usando SOLO el canal Hue.
+        images, outputs: tensores (B,3,H,W) en [0,1]
+        """
+        images_hsv  = rgb_to_hsv_torch(images)
+        outputs_hsv = rgb_to_hsv_torch(outputs)
+
+        # Solo canal Hue (índice 0) -> (B, H, W)
+        hue_img = images_hsv[:, 0, :, :]
+        hue_out = outputs_hsv[:, 0, :, :]
+
+        per_pixel = (hue_out - hue_img) ** 2      # (B, H, W)
+
+        mean_err = per_pixel.mean(dim=[1, 2])     # (B,)
+        max_err  = per_pixel.amax(dim=[1, 2])     # (B,)
+
+        score = mean_err + lam * max_err
+        return score.detach().cpu().numpy()
     
     def compute_errors_on_annotated(model, annotated_df, batch_size=32, save_csv="Annotated_Errors.csv"):
 
@@ -475,7 +495,7 @@ if __name__ == "__main__":
                 images = images.to(device, non_blocking=True)
                 outputs = model(images)
 
-                errors = reconstruction_error_hsv_mean_max(images, outputs)
+                errors = reconstruction_error_hsv_mean_max_hue(images, outputs)
 
                 # Fetch matching rows from DF
                 for err in errors:
@@ -508,7 +528,7 @@ if __name__ == "__main__":
         model_final = model_final.to(device)
 
     if validate:
-        reconstruction = 'MSE-HSV-MEAN-MAX_100percent' # opciones: 'MSE-RGB', 'MSE-HSV', 'MSE-HSV-MEAN-MAX'
+        reconstruction = 'MSE-HSV-MEAN-MAX-HUE' # opciones: 'MSE-RGB', 'MSE-HSV', 'MSE-HSV-MEAN-MAX'
         df_errors_annotated = compute_errors_on_annotated(
             model_final,
             df_annotated,   # <-- debe tener CODI, PATH, PRESENCE

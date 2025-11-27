@@ -89,7 +89,8 @@ def extract_features_from_dataframe(df, encoder, device, max_patches=None):
 
                 with torch.no_grad():
                     features = encoder(img_tensor)
-                    features_flat = torch.flatten(features, start_dim=1)
+                    features_pooled = torch.nn.functional.adaptive_avg_pool2d(features, (1, 1))
+                    features_flat = features_pooled.view(features_pooled.size(0), -1)
                     features_list.append(features_flat.squeeze(0).cpu())
 
                 processed_in_patient += 1
@@ -180,7 +181,8 @@ if __name__ == "__main__":
     with torch.no_grad():
         dummy_input = torch.randn(1, 3, 224, 224).to(device)
         dummy_output = encoder(dummy_input)
-        feature_dim = torch.flatten(dummy_output).shape[0]
+        pooled_output = torch.nn.functional.adaptive_avg_pool2d(dummy_output, (1, 1))
+        feature_dim = pooled_output.shape[1]
 
     print(f"[MODEL] ✓ Dimensión de features del encoder: {feature_dim}", flush=True)
 
@@ -250,7 +252,7 @@ if __name__ == "__main__":
             'ATTENTION_BRANCHES': 1
         }
         attention_model = GatedAttention(attention_params).to(device)
-
+        print("Creando Clasificador")
         classifier_params = {
             'in_features': feature_dim,
             'out_features': 2

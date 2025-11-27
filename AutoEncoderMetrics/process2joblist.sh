@@ -12,7 +12,7 @@
 
 sleep 3
 source /export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/MyVirtualEnv/bin/activate
-srun python /export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/AEExample_Script.py
+srun python /export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/check_latent_dim.py
 
 # srun python /export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/train_phase1_backbone.py
 # srun python /export/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoder/train_phase2_patch_classifier.py
