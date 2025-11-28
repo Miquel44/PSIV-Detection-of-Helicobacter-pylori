@@ -1,0 +1,9 @@
+Method A — Statistical threshold (k=3.0)
+mu = 0.24396521125910162
+sigma = 0.1651992321992179
+Threshold = 0.7395629078567553
+
+Accuracy = 0.45440956651718983
+Sensitivity = 0.0
+Specificity = 0.9999999999917764
+TP=0, FP=0, FN=1460, TN=1216

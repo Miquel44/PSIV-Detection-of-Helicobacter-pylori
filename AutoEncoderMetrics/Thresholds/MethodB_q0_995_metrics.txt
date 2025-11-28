@@ -1,0 +1,8 @@
+Method B — Percentile threshold
+q = 0.995
+Threshold = 0.5570645824074744
+
+Accuracy = 0.4704783258594918
+Sensitivity = 0.03424657534223119
+Specificity = 0.9942434210444553
+TP=50, FP=7, FN=1410, TN=1209

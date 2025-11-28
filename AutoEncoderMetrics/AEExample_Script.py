@@ -53,10 +53,11 @@ import torchvision.transforms.functional as TF
 ## Own Functions
 from Models.AEmodels import AutoEncoderCNN
 from Models.datasets import ImageDataset
+from validation import *
+from test import evaluate_thresholds_on_holdout
 
 # WandB
 # import wandb
-
 
 def AEConfigs(Config):
     net_paramsEnc={}
@@ -88,42 +89,6 @@ def AEConfigs(Config):
     
     return net_paramsEnc,net_paramsDec,inputmodule_paramsDec
 
-def rgb_to_hsv_torch(img):
-    """
-    img: tensor (B, 3, H, W) con valores en [0,1]
-    return: hsv tensor (B, 3, H, W)
-    """
-
-    r, g, b = img[:,0], img[:,1], img[:,2]
-
-    maxc = torch.max(img, dim=1).values
-    minc = torch.min(img, dim=1).values
-    v = maxc
-
-    deltac = maxc - minc
-    s = deltac / (maxc + 1e-8)
-
-    # Hue calculation
-    rc = (maxc - r) / (deltac + 1e-8)
-    gc = (maxc - g) / (deltac + 1e-8)
-    bc = (maxc - b) / (deltac + 1e-8)
-
-    h = torch.zeros_like(maxc)
-
-    mask = (maxc == r)
-    h[mask] = (bc - gc)[mask]
-
-    mask = (maxc == g)
-    h[mask] = 2.0 + (rc - bc)[mask]
-
-    mask = (maxc == b)
-    h[mask] = 4.0 + (gc - rc)[mask]
-
-    h = (h / 6.0) % 1.0
-
-    hsv = torch.stack([h, s, v], dim=1)
-    return hsv
-
 if __name__ == "__main__":
     ######################### 0. EXPERIMENT PARAMETERS
     # 0.1 AE PARAMETERS
@@ -138,7 +103,8 @@ if __name__ == "__main__":
     img_size = 256 # SOLO SIRVE PARA CAMBIAR EL NOMBRE DEL PATH, la de verdad se cambia en datasets.py
 
     train = False
-    validate = True
+    validate = False
+    test = True
 
     # 0.1 NETWORK TRAINING PARAMS
     # WandB Initialization
@@ -163,12 +129,11 @@ if __name__ == "__main__":
     #### 1. LOAD DATA: Implement 
     # 1.1 Patient Diagnosis
 
-    # try:
-    #     df_cropped = pd.read_csv("/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/Data/PatientDiagnosis_AE_Linux.csv")
-    # except:
-    #     df_cropped = pd.read_csv("Data/PatientDiagnosis_AE.csv")
+    try:
+        df_cropped = pd.read_csv("/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/DatasetsTrain/CroppedTrain.csv")
+    except:
+        df_cropped = pd.read_csv("Data/PatientDiagnosis_AE.csv")
 
-    df_cropped = pd.read_csv("/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/DatasetsTrain/CroppedTrain.csv")
     print(f"Total imágenes en Cropped CSV: {len(df_cropped)}")
 
     # ------------------------------
@@ -199,7 +164,10 @@ if __name__ == "__main__":
     patient_ids = df_cropped["CODI"].tolist()
 
     # 1.2 Patches Data
-    df_annotated = pd.read_csv("/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/DatasetsTrain/AnnotatedTrain.csv")
+    try:
+        df_annotated = pd.read_csv("/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/DatasetsTrain/AnnotatedTrain.csv")
+    except:
+        df_annotated = pd.read_csv("Data/annotated.csv")
     print(f"Total imágenes en Annotated CSV: {len(df_annotated)}")
 
     # 1.3 HoldOut Data
@@ -432,108 +400,28 @@ if __name__ == "__main__":
         exit()
 
     #### 5. AE RED METRICS THRESHOLD LEARNING
-    def reconstruction_error_hsv(images, outputs):
-        images_hsv = rgb_to_hsv_torch(images)
-        outputs_hsv = rgb_to_hsv_torch(outputs)
-        return torch.mean((images_hsv - outputs_hsv)**2, dim=[1,2,3]).detach().cpu().numpy()
-
-    def reconstruction_error_rgb(images, outputs):    
-        return torch.mean((outputs - images) ** 2, dim=[1,2,3]).detach().cpu().numpy()
-
-    def reconstruction_error_hsv_mean_max(images, outputs, lam=0.5):
-        images_hsv  = rgb_to_hsv_torch(images)
-        outputs_hsv = rgb_to_hsv_torch(outputs)
-        per_pixel   = (outputs_hsv - images_hsv) ** 2
-        per_pixel   = per_pixel.mean(dim=1)   # (B, H, W)
-
-        mean_err = per_pixel.mean(dim=[1, 2])    # (B,)
-        max_err  = per_pixel.amax(dim=[1, 2])    # (B,)
-
-        score = mean_err + lam * max_err
-        return score.detach().cpu().numpy()
-
-    def reconstruction_error_hsv_mean_max_hue(images, outputs, lam=0.5):
-        """
-        Error de reconstrucción usando SOLO el canal Hue.
-        images, outputs: tensores (B,3,H,W) en [0,1]
-        """
-        images_hsv  = rgb_to_hsv_torch(images)
-        outputs_hsv = rgb_to_hsv_torch(outputs)
-
-        # Solo canal Hue (índice 0) -> (B, H, W)
-        hue_img = images_hsv[:, 0, :, :]
-        hue_out = outputs_hsv[:, 0, :, :]
-
-        per_pixel = (hue_out - hue_img) ** 2      # (B, H, W)
-
-        mean_err = per_pixel.mean(dim=[1, 2])     # (B,)
-        max_err  = per_pixel.amax(dim=[1, 2])     # (B,)
-
-        score = mean_err + lam * max_err
-        return score.detach().cpu().numpy()
-    
-    def compute_errors_on_annotated(model, annotated_df, batch_size=32, save_csv="Annotated_Errors.csv"):
-
-        device = next(model.parameters()).device
-
-        annotated_loader = DataLoader(
-            ImageDataset(annotated_df, verify_images=False),
-            batch_size=batch_size,
-            shuffle=False,
-            num_workers=8,
-            pin_memory=True,
-            persistent_workers=True
-        )
-
-        all_records = []
-        model.eval()
-
-        with torch.no_grad():
-            processed = 0
-
-            for images, codis in annotated_loader:
-                images = images.to(device, non_blocking=True)
-                outputs = model(images)
-
-                errors = reconstruction_error_hsv_mean_max_hue(images, outputs)
-
-                # Fetch matching rows from DF
-                for err in errors:
-                    row = annotated_df.iloc[processed]
-                    all_records.append({
-                        "CODI": row["CODI"],
-                        "PATH": row["PATH"],
-                        "PRESENCE": int(row["PRESENCE"]),  # 0 = sano, 1 = HPylori
-                        "ERROR": float(err)
-                    })
-                    processed += 1
-
-        df_errors = pd.DataFrame(all_records)
-        df_errors.to_csv(save_csv, index=False)
-        print(f"Saved annotated error CSV to {save_csv}")
-
-        return df_errors
 
     ## 5.1 AE Model Evaluation
     print("Evaluating AutoEncoder Model on Annotated Dataset...")
 
-    if not train:
+    if not train and (validate or test):
         model_final = AutoEncoderCNN(inputmodule_paramsEnc, net_paramsEnc,
                              inputmodule_paramsDec, net_paramsDec)
         
         print(">>> INITIALIZING MODEL FOR EVALUATION")
-        model_path = f"/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/Models/Trained/AE_Config{Config}_best_MSELoss_{img_size}.pth"
+        model_path = f"AutoEncoderMetrics/Models/Trained/AE_Config{Config}_best_MSELoss_{img_size}.pth"
         print(f">>> LOADING CHECKPOINT: {model_path}", flush=True)
         model_final.load_state_dict(torch.load(model_path, map_location=device))
         model_final = model_final.to(device)
 
     if validate:
         reconstruction = 'MSE-HSV-MEAN-MAX-HUE' # opciones: 'MSE-RGB', 'MSE-HSV', 'MSE-HSV-MEAN-MAX'
+        print(">>> INITIATING EVALUATION")
         df_errors_annotated = compute_errors_on_annotated(
             model_final,
             df_annotated,   # <-- debe tener CODI, PATH, PRESENCE
             batch_size=batch_size,
-            save_csv=f"/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/Results_MSELoss_{img_size}/Reconstruction_{reconstruction}/Annotated_Errors_MSELoss.csv"
+            save_csv=f"Annotated_Errors_MSELoss.csv"
         )
 
         # df_errors_annotated = compute_errors_on_annotated(
@@ -559,109 +447,68 @@ if __name__ == "__main__":
     # wandb.finish()
 
     ## 5.2 RedMetrics Threshold 
-    df = pd.read_csv(f"/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/Results_MSELoss_{img_size}/Reconstruction_{reconstruction}/Annotated_Errors_MSELoss.csv")
-    print()
-    print("Total filas df:", len(df))
-    print("Sanos:", (df["PRESENCE"] == 0).sum())
-    print("Contaminados:", (df["PRESENCE"] == 1).sum())
-    print("Min error:", df["ERROR"].min())
-    print("Max error:", df["ERROR"].max())
+    df = pd.read_csv(f"Annotated_Errors_MSELoss.csv")
+    thresholds = {}
 
-    # 1) ver si hay duplicados
-    print("Filas únicas (PATH,PRESENCE):",
-        df.drop_duplicates(subset=["PATH", "PRESENCE"]).shape[0])
+    # Método A - Statistical Threshold
+    for k in [2.0, 2.5, 3.0]:
+        thresholds[f"A_k{k}"] = compute_threshold_statistical(df, k=k, save_prefix=f"MethodA_k{k}")[0]
 
-    dup = df[df.duplicated(subset=["PATH", "PRESENCE"], keep=False)]
-    print("Duplicados:", len(dup))
+    # Método B - Percentile Threshold
+    for q in [0.99, 0.995]:
+        thresholds[f"B_q{k * 100}"] = compute_threshold_percentile(
+            df,
+            q=q,
+            save_prefix=f"MethodB_q{str(q).replace('.', '_')}"
+        )[0]
 
-    # 2) ver distribución básica de errores por clase
-    print("Sanos ERROR describe:\n", df[df["PRESENCE"]==0]["ERROR"].describe())
-    print("Cont ERROR describe:\n", df[df["PRESENCE"]==1]["ERROR"].describe())
-    print()
+    # Método C-B - K-Folds with Percentile Threshold
+    threshold_C_theoretical, list_thresholds = compute_threshold_methodC_theoretical(
+        df,
+        num_folds=5,
+        percentile=0.99,      # método B dentro de cada fold
+        save_prefix="MethodC_Theoretical"
+    )
+    thresholds["C_theoretical"] = threshold_C_theoretical
 
-    # Sanity check
-    assert "PRESENCE" in df.columns, "Missing PRESENCE column"
-    assert "ERROR" in df.columns, "Missing ERROR column"
+    # Método C-E - K-Folds with Youden
+    th_mean_emp, th_med_emp, th_list_emp = compute_threshold_methodC_empirical(
+        df,
+        num_folds=5,
+        save_prefix="MethodC_Empirical"
+    )
+    thresholds["C_emp_mean"] = th_mean_emp
+    thresholds["C_emp_median"] = th_med_emp
 
-    # Convert to numpy arrays
-    y_true = df["PRESENCE"].values.astype(int)
-    y_score = df["ERROR"].values.astype(float)
+    # Método D - EVT + GPD
+    th_evt, u_evt, xi_evt, beta_evt = compute_threshold_methodD_evt(
+        df,
+        initial_percentile=0.95,
+        target_fpr=1e-3,
+        save_prefix="MethodD_EVT"
+    )
+    thresholds["D_EVT"] = th_evt
 
-    # Compute ROC curve and AUC
-    fpr, tpr, thresholds = roc_curve(y_true, y_score)
-    roc_auc = auc(fpr, tpr)
-    print(f"ROC AUC = {roc_auc:.4f}")
+    th_youden = compute_threshold_youden(df)
+    thresholds["Youden"] = th_youden
 
-    # Optional: Plot ROC
-    plt.figure(figsize=(6,6))
-    plt.plot(fpr, tpr, label=f"AUC = {roc_auc:.4f}")
-    plt.plot([0,1], [0,1], linestyle="--", color="gray")
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.title("ROC Curve (Autoencoder Reconstruction Error)")
-    plt.legend()
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(f"/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/Results_MSELoss_{img_size}/Reconstruction_{reconstruction}/ROC_Curve.png")
-    plt.close()
-
-    # Youden's J statistic = sensitivity + specificity - 1
-    youden_j = tpr - fpr
-    best_idx = np.argmax(youden_j)
-    best_threshold = thresholds[best_idx]
-
-    print(f"Best threshold by Youden J = {best_threshold}")
-
-    # Save threshold
-    with open(f"/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/Results_MSELoss_{img_size}/Reconstruction_{reconstruction}/best_threshold_MSELoss.txt", "w") as f:
-        f.write(str(best_threshold))
-
-    # Evaluate patch-level performance at this threshold
-    y_pred = (y_score >= best_threshold).astype(int)
-
-    cm = confusion_matrix(y_true, y_pred)
-    tn, fp, fn, tp = cm.ravel()
-
-    accuracy = (tp + tn) / np.sum(cm)
-    sensitivity = tp / (tp + fn)
-    specificity = tn / (tn + fp)
-
-    print("\nPatch-level evaluation:")
-    print(f"Accuracy:    {accuracy:.4f}")
-    print(f"Sensitivity: {sensitivity:.4f}")
-    print(f"Specificity: {specificity:.4f}")
-
-    # Save evaluation
-    with open(f"/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/Results_MSELoss_{img_size}/Reconstruction_{reconstruction}/patch_level_metrics_MSELoss.txt", "w") as f:
-        f.write(f"Threshold: {best_threshold}\n")
-        f.write(f"AUC: {roc_auc}\n")
-        f.write(f"Accuracy: {accuracy}\n")
-        f.write(f"Sensitivity: {sensitivity}\n")
-        f.write(f"Specificity: {specificity}\n")
-        f.write(f"TN: {tn}\nFP: {fp}\nFN: {fn}\nTP: {tp}\n")
-
-    p99 = df["ERROR"].quantile(0.99)
-    df_plot = df[df["ERROR"] <= p99].copy()
-
-    # Plot histogram of errors (sanos vs contaminados)
-    plt.figure(figsize=(8,5))
-    plt.hist(df_plot[df_plot["PRESENCE"]==0]["ERROR"], bins=50, alpha=0.6, label="Sanos", color="green")
-    plt.hist(df_plot[df_plot["PRESENCE"]==1]["ERROR"], bins=50, alpha=0.6, label="Contaminados", color="red")
-    plt.axvline(best_threshold, color="blue", linestyle="--", label=f"Threshold={best_threshold:.5f}")
-    plt.title("Histogram of Reconstruction Errors")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(f"/fhome/maed01/PSIV-Detection-of-Helicobacter-pylori/AutoEncoderMetrics/Results_MSELoss_{img_size}/Reconstruction_{reconstruction}/Error_Histogram_MSELoss_clipped.png")
-    plt.close()
-
-    print("\nSaved:")
-    print("- ROC curve")
-    print("- Error histogram")
-    print("- Threshold & metrics files")
-    print("- Patch-level evaluation complete.")
+    thresholds["Dummy"] = 0.1
 
     ### 6. DIAGNOSIS CROSSVALIDATION
     ### 6.1 Load Patches 4 CrossValidation of Diagnosis
+    df_holdout = pd.read_csv("Data/HoldOut_prepared.csv")
 
     ### 6.2 Diagnostic Power
+    print()
+    print(">>> INITIATING EVALUATION")
+    df_results, patient_results = evaluate_thresholds_on_holdout(
+        model_final,
+        df_holdout,
+        thresholds,
+        min_errors=1   # tu criterio nuevo
+    )
 
+    df_results.to_csv("AutoEncoderMetrics/Test/HoldOut_Threshold_Comparisons_Dummy.csv", index=False)
+
+    print()
+    print(patient_results)
